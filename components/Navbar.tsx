@@ -6,19 +6,20 @@ const Navbar = () => {
   const { isSignedIn, userName, signOut, signIn } =
     useOutletContext<AuthContext>();
 
-  const handleAuthclick = async () => {
+  const handleAuthClick = async () => {
     if (isSignedIn) {
       try {
-        signOut();
+        await signOut();
       } catch (err) {
         console.error("Puter - error signing out ", err);
       }
-    } else {
-      try {
-        await signIn();
-      } catch (err) {
-        console.error("Puter - error signing in ", err);
-      }
+      return;
+    }
+
+    try {
+      await signIn();
+    } catch (err) {
+      console.error("Puter - error signing in ", err);
     }
   };
 
@@ -46,13 +47,13 @@ const Navbar = () => {
                 {userName ? `Hi, ${userName}` : "Signed in"}
               </span>
 
-              <Button size="sm" onClick={handleAuthclick} className="btn">
+              <Button size="sm" onClick={handleAuthClick} className="btn">
                 Log Out
               </Button>
             </>
           ) : (
             <>
-              <Button size="sm" variant="ghost" onClick={handleAuthclick}>
+              <Button size="sm" variant="ghost" onClick={handleAuthClick}>
                 Log In
               </Button>
               <a href="#upload" className="cta">
