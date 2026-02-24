@@ -56,15 +56,20 @@ const DEFAULT_AUTH_STATE: AuthState = {
 export default function App() {
   const [authState, setAuthState] = useState<AuthState>(DEFAULT_AUTH_STATE);
 
-  const refreshAuth = async () => {
+  const refreshAuth = async (): Promise<boolean> => {
     try {
       const user = await getCurrentUser();
       if (user) {
         setAuthState({
-          isSignedIn: !!user,
-          userName: user?.username || null,
-          userId: user?.uuid || null,
+          isSignedIn: true,
+          userName: user.username || null,
+          userId: user.uuid || null,
         });
+        return true;
+      } else {
+        // user is null (e.g. 401 after sign-out) — always reset to signed-out
+        setAuthState(DEFAULT_AUTH_STATE);
+        return false;
       }
     } catch (err) {
       setAuthState(DEFAULT_AUTH_STATE);
