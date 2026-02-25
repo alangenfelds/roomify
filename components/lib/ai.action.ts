@@ -25,12 +25,15 @@ export const generate3DView = async ({ sourceImage }: Generate3DViewParams) => {
     ? sourceImage
     : await fetchAsDataUrl(sourceImage);
 
-  const base64Data = dataUrl.split(",")[1];
-  const mimeType = dataUrl.split(";")[0].split(":")[1];
-
-  if (!mimeType || !base64Data) {
-    throw new Error("Invalid source image payload");
+  const match = dataUrl.match(
+    /^data:(image\/[a-zA-Z0-9.+-]+);base64,([\s\S]+)$/,
+  );
+  if (!match) {
+    throw new Error(
+      "Source image must be a base64 data URL with image/* MIME type",
+    );
   }
+  const [, mimeType, base64Data] = match;
 
   const response = await puter.ai.txt2img({
     provider: "gemini",
