@@ -27,7 +27,9 @@ export const getOrCreateHostingConfig =
 
     try {
       const createdConfig = await puter.hosting.create(subdomain, ".");
-      return { subdomain: createdConfig.subdomain };
+      const config: HostingConfig = { subdomain: createdConfig.subdomain };
+      await puter.kv.set(HOSTING_CONFIG_KEY, config);
+      return config;
     } catch (error) {
       console.warn("Could not create hosting config", error);
       return null;
