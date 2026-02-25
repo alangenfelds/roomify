@@ -15,26 +15,40 @@ const Upload = ({ onComplete }: UploadProps) => {
   const [file, setFile] = React.useState<File | null>(null);
   const [isDragging, setIsDragging] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
+  const [readError, setReadError] = React.useState<string | null>(null);
+
+  const intervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+  const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { isSignedIn } = useOutletContext<AuthContext>();
+
+  // Clear any running interval/timeout when the component unmounts
+  React.useEffect(() => {
+    return () => {
+      if (intervalRef.current !== null) clearInterval(intervalRef.current);
+      if (timeoutRef.current !== null) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   const processFile = (selectedFile: File) => {
     if (!isSignedIn) return;
 
     setFile(selectedFile);
     setProgress(0);
+    setReadError(null);
 
     const reader = new FileReader();
 
     reader.onload = (e) => {
       const base64 = e.target?.result as string;
 
-      const interval = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         setProgress((prev) => {
           const next = prev + PROGRESS_STEP;
           if (next >= 100) {
-            clearInterval(interval);
-            setTimeout(() => {
+            clearInterval(intervalRef.current!);
+            intervalRef.current = null;
+            timeoutRef.current = setTimeout(() => {
               onComplete?.(base64);
             }, REDIRECT_DELAY_MS);
             return 100;
@@ -42,6 +56,14 @@ const Upload = ({ onComplete }: UploadProps) => {
           return next;
         });
       }, PROGRESS_INTERVAL_MS);
+    };
+
+    reader.onerror = () => {
+      const message =
+        reader.error?.message ?? "Failed to read file. Please try again.";
+      setReadError(message);
+      setFile(null);
+      setProgress(0);
     };
 
     reader.readAsDataURL(selectedFile);
@@ -73,15 +95,22 @@ const Upload = ({ onComplete }: UploadProps) => {
     setIsDragging(false);
   };
 
+  const ALLOWED_TYPES = ["image/jpeg", "image/png"];
+
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
     if (!isSignedIn) return;
     const dropped = e.dataTransfer.files?.[0];
-    if (dropped) {
-      processFile(dropped);
+    if (!dropped) return;
+    if (!ALLOWED_TYPES.includes(dropped.type)) {
+      setReadError(
+        `Unsupported file type "${dropped.type}". Please upload a JPG or PNG.`,
+      );
+      return;
     }
+    processFile(dropped);
   };
 
   return (
@@ -113,6 +142,7 @@ const Upload = ({ onComplete }: UploadProps) => {
             <p className="help">
               Supported formats: JPG, PNG, PDF (Maximum file size 10MB)
             </p>
+            {readError && <p className="upload-error">{readError}</p>}
           </div>
         </div>
       ) : (
