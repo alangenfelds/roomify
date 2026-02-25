@@ -40,9 +40,8 @@ router.post("/api/projects/save", async ({ request, user }) => {
       project: payload,
     };
   } catch (error) {
-    return jsonError(500, "Failed to save project", {
-      message: error.message || "Unknown error occurred",
-    });
+    console.error("[/api/projects/save] Unexpected error:", error);
+    return jsonError(500, "An unexpected error occurred. Please try again.");
   }
 });
 
@@ -63,14 +62,13 @@ router.get("/api/projects/list", async ({ request, user }) => {
     const keys = await userPuter.kv.list(PROJECT_PREFIX, true);
     const projects = keys.map(({ value }) => ({
       ...value,
-      isPublic: true,
+      isPublic: value.isPublic ?? value.visibility === "public",
     }));
 
     return { projects };
   } catch (error) {
-    return jsonError(500, "Failed to list projects", {
-      message: error.message || "Unknown error occurred",
-    });
+    console.error("[/api/projects/list] Unexpected error:", error);
+    return jsonError(500, "An unexpected error occurred. Please try again.");
   }
 });
 
@@ -98,8 +96,7 @@ router.get("/api/projects/get", async ({ request, user }) => {
 
     return { project };
   } catch (error) {
-    return jsonError(500, "Failed to get project", {
-      message: error.message || "Unknown error occurred",
-    });
+    console.error("[/api/projects/get] Unexpected error:", error);
+    return jsonError(500, "An unexpected error occurred. Please try again.");
   }
 });

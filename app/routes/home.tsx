@@ -70,8 +70,12 @@ export default function Home() {
 
   useEffect(() => {
     const fetchProjects = async () => {
-      const projects = await listProjects();
-      setProjects(projects);
+      try {
+        const fetchedProjects = await listProjects();
+        setProjects(fetchedProjects);
+      } catch (error) {
+        console.error("Failed to load projects:", error);
+      }
     };
     fetchProjects();
   }, []);
