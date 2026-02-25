@@ -3,9 +3,9 @@ import type { Route } from "./+types/home";
 import { ArrowRight, ArrowUpRight, Clock, Layers } from "lucide-react";
 import { Button } from "components/ui/Button";
 import Upload from "components/Upload";
-import { useNavigate } from "react-router";
-import { useState } from "react";
-import { createProject } from "components/lib/puter.action";
+import { useNavigate, useOutletContext } from "react-router";
+import { useEffect, useRef, useState } from "react";
+import { createProject, listProjects } from "components/lib/puter.action";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -15,42 +15,70 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
+  const { userName } = useOutletContext<AuthContext>();
+
   const navigate = useNavigate();
   const [projects, setProjects] = useState<DesignItem[]>([]);
+  const isCreatingProjectRef = useRef(false);
 
   const handleUploadComplete = async (base64Image: string) => {
-    const imageId = Date.now().toString();
-
-    const name = "Residence " + imageId;
-
-    const newItem = {
-      id: imageId,
-      name,
-      sourceImage: base64Image,
-      renderedImage: undefined,
-      timestamp: Date.now(),
-    };
-
-    const saved = await createProject({ item: newItem, visibility: "private" });
-
-    if (!saved) {
-      console.error("Failed to save project!");
+    if (isCreatingProjectRef.current) {
       return false;
     }
 
-    setProjects((prev) => [saved, ...prev]);
+    isCreatingProjectRef.current = true;
 
-    // redirect to visualizer page with the base64 data
-    navigate(`/visualizer/${imageId}`, {
-      state: {
-        initialImage: saved.sourceImage,
-        initialRendered: saved.renderedImage || null,
+    try {
+      const imageId = Date.now().toString();
+
+      const name = "Residence " + imageId;
+
+      const newItem = {
+        id: imageId,
         name,
-      },
-    });
+        sourceImage: base64Image,
+        renderedImage: undefined,
+        timestamp: Date.now(),
+      };
 
-    return true;
+      const saved = await createProject({
+        item: newItem,
+        visibility: "private",
+      });
+
+      if (!saved) {
+        console.error("Failed to save project!");
+        return false;
+      }
+
+      setProjects((prev) => [saved, ...prev]);
+
+      // redirect to visualizer page with the base64 data
+      navigate(`/visualizer/${imageId}`, {
+        state: {
+          initialImage: saved.sourceImage,
+          initialRendered: saved.renderedImage || null,
+          name,
+        },
+      });
+
+      return true;
+    } finally {
+      isCreatingProjectRef.current = false;
+    }
   };
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const fetchedProjects = await listProjects();
+        setProjects(fetchedProjects);
+      } catch (error) {
+        console.error("Failed to load projects:", error);
+      }
+    };
+    fetchProjects();
+  }, []);
 
   return (
     <div className="home">
@@ -111,13 +139,14 @@ export default function Home() {
           <div className="projects-grid">
             {projects.map(
               ({ id, name, renderedImage, sourceImage, timestamp }) => (
-                <div
+                <button
+                  type="button"
                   className="project-card group"
                   key={`${id}-${name}-${timestamp}`}
+                  onClick={() => navigate(`/visualizer/${id}`)}
                 >
                   <div className="preview">
                     <img
-                      // src="https://roomify-mlhuk267-dfwu1i.puter.site/projects/1770803585402/rendered.png"
                       src={renderedImage || sourceImage}
                       alt={`${name}-image-preview`}
                     />
@@ -133,7 +162,7 @@ export default function Home() {
                       <div className="meta">
                         <Clock size={12} />
                         <span>{new Date(timestamp).toLocaleDateString()}</span>
-                        <span>by John Doe</span>
+                        <span>by {userName || "You"}</span>
                       </div>
                     </div>
 
@@ -141,7 +170,7 @@ export default function Home() {
                       <ArrowUpRight size={18} />
                     </div>
                   </div>
-                </div>
+                </button>
               ),
             )}
           </div>
