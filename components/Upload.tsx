@@ -95,7 +95,7 @@ const Upload = ({ onComplete }: UploadProps) => {
     setIsDragging(false);
   };
 
-  const ALLOWED_TYPES = ["image/jpeg", "image/png"];
+  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -106,7 +106,7 @@ const Upload = ({ onComplete }: UploadProps) => {
     if (!dropped) return;
     if (!ALLOWED_TYPES.includes(dropped.type)) {
       setReadError(
-        `Unsupported file type "${dropped.type}". Please upload a JPG or PNG.`,
+        `Unsupported file type "${dropped.type}". Please upload a JPG, PNG, or WebP.`,
       );
       return;
     }
@@ -127,7 +127,7 @@ const Upload = ({ onComplete }: UploadProps) => {
             type="file"
             className="drop-input"
             onChange={handleFileChange}
-            accept=".jpg,.jpeg,.png"
+            accept=".jpg,.jpeg,.png,.webp"
             disabled={!isSignedIn}
           />
           <div className="drop-content">
@@ -140,7 +140,7 @@ const Upload = ({ onComplete }: UploadProps) => {
                 : "Please sign in to upload"}
             </p>
             <p className="help">
-              Supported formats: JPG, PNG, PDF (Maximum file size 10MB)
+              Supported formats: JPG, PNG, WebP (Maximum file size 10MB)
             </p>
             {readError && <p className="upload-error">{readError}</p>}
           </div>
