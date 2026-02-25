@@ -24,6 +24,26 @@ const Visualizer = () => {
 
   const handleBack = () => navigate("/");
 
+  const handleExport = async () => {
+    if (!currentImage) return;
+
+    try {
+      const response = await fetch(currentImage);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `roomify-${id}-${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error("Failed to export image:", error);
+    }
+  };
+
   const runGeneration = async (item: DesignItem) => {
     if (!id || !item.sourceImage) return;
 
@@ -141,7 +161,7 @@ const Visualizer = () => {
                 className="export"
                 size="sm"
                 disabled={!currentImage}
-                onClick={() => {}}
+                onClick={handleExport}
               >
                 <Download className="w-4 h-4 mr-2" /> Export
               </Button>
