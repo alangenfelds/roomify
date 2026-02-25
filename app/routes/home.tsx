@@ -38,7 +38,7 @@ export default function Home() {
       return false;
     }
 
-    setProjects((prev) => [newItem, ...prev]);
+    setProjects((prev) => [saved, ...prev]);
 
     // redirect to visualizer page with the base64 data
     navigate(`/visualizer/${imageId}`, {
