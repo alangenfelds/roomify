@@ -1,0 +1,76 @@
+import puter from "@heyputer/puter.js";
+import {
+  createHostingSlug,
+  fetchBlobFromUrl,
+  getHostedUrl,
+  getImageExtension,
+  HOSTING_CONFIG_KEY,
+  imageUrlToPngBlob,
+  isHostedUrl,
+} from "./utils";
+
+type HostingConfig = {
+  subdomain: string;
+};
+
+type HostedAsset = { url: string };
+
+export const getOrCreateHostingConfig =
+  async (): Promise<HostingConfig | null> => {
+    const existing = (await puter.kv.get(
+      HOSTING_CONFIG_KEY,
+    )) as HostingConfig | null;
+
+    if (existing?.subdomain) return { subdomain: existing.subdomain };
+
+    const subdomain = createHostingSlug();
+
+    try {
+      const createdConfig = await puter.hosting.create(subdomain, ".");
+      const config: HostingConfig = { subdomain: createdConfig.subdomain };
+      await puter.kv.set(HOSTING_CONFIG_KEY, config);
+      return config;
+    } catch (error) {
+      console.warn("Could not create hosting config", error);
+      return null;
+    }
+  };
+
+export const uploadImageToHosting = async ({
+  hosting,
+  url,
+  projectId,
+  label,
+}: StoreImageToHostingParams): Promise<HostedAsset | null> => {
+  if (!hosting || !url) return null;
+  if (isHostedUrl(url)) return { url };
+
+  try {
+    const resolved =
+      label === "rendered"
+        ? await imageUrlToPngBlob(url).then((blob) =>
+            blob ? { blob, contentType: "image/png" } : null,
+          )
+        : await fetchBlobFromUrl(url);
+
+    if (!resolved) return null;
+    const contentType = resolved.contentType || resolved.blob.type || "";
+    const extension = getImageExtension(contentType, url);
+    const dir = `projects/${projectId}`;
+    const filePath = `${dir}/${label}.${extension}`;
+
+    const uploadFile = new File([resolved.blob], `${label}.${extension}`, {
+      type: contentType,
+    });
+
+    await puter.fs.mkdir(dir, { createMissingParents: true });
+    await puter.fs.write(filePath, uploadFile);
+
+    const hostedUrl = getHostedUrl({ subdomain: hosting.subdomain }, filePath);
+
+    return hostedUrl ? { url: hostedUrl } : null;
+  } catch (err) {
+    console.warn("Could not upload image to hosting", err);
+    return null;
+  }
+};
