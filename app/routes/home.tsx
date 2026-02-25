@@ -16,7 +16,6 @@ export default function Home() {
   const navigate = useNavigate();
 
   const handleUploadComplete = async (base64Image: string) => {
-    // console.log("Upload complete: ", base64Data);
     const imageId = Date.now().toString();
     // redirect to visualizer page with the base64 data
     navigate(`/visualizer/${imageId}`, {
