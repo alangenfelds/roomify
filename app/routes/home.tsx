@@ -135,7 +135,8 @@ export default function Home() {
           <div className="projects-grid">
             {projects.map(
               ({ id, name, renderedImage, sourceImage, timestamp }) => (
-                <div
+                <button
+                  type="button"
                   className="project-card group"
                   key={`${id}-${name}-${timestamp}`}
                   onClick={() => navigate(`/visualizer/${id}`)}
@@ -165,7 +166,7 @@ export default function Home() {
                       <ArrowUpRight size={18} />
                     </div>
                   </div>
-                </div>
+                </button>
               ),
             )}
           </div>
