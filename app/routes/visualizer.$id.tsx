@@ -3,6 +3,10 @@ import { createProject, getProjectById } from "components/lib/puter.action";
 import { Button } from "components/ui/Button";
 import { Box, Download, RefreshCcw, Share2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import {
+  ReactCompareSlider,
+  ReactCompareSliderImage,
+} from "react-compare-slider";
 import { useNavigate, useOutletContext, useParams } from "react-router";
 
 const Visualizer = () => {
@@ -180,6 +184,44 @@ const Visualizer = () => {
                     Generating 3D Visualization...
                   </span>
                 </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="panel compare">
+          <div className="panel-header">
+            <div className="panel-meta">
+              <p>Comparison</p>
+              <h3>Original vs AI Rendered</h3>
+            </div>
+            <div className="hint">Drag to compare</div>
+          </div>
+
+          <div className="compare-stage">
+            {project?.sourceImage && currentImage ? (
+              <ReactCompareSlider
+                defaultValue={50}
+                style={{ height: "auto", width: "100%" }}
+                itemOne={
+                  <ReactCompareSliderImage
+                    src={project.sourceImage}
+                    alt="before"
+                  />
+                }
+                itemTwo={
+                  <ReactCompareSliderImage src={currentImage} alt="after" />
+                }
+              />
+            ) : (
+              <div className="compare-fallback">
+                {project?.sourceImage && (
+                  <img
+                    src={project.sourceImage}
+                    alt="Original Image"
+                    className="compare-img"
+                  />
+                )}
               </div>
             )}
           </div>
