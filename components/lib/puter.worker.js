@@ -28,13 +28,14 @@ const getUserId = async (userPuter) => {
  * Format: roomify_project_<userId>_<projectId>
  */
 const makeKey = (userId, projectId) =>
-  `${PROJECT_PREFIX}${userId}_${projectId}`;
+  `${PROJECT_PREFIX}${encodeURIComponent(String(userId))}:${encodeURIComponent(String(projectId))}`;
 
 /**
  * Builds the per-user KV prefix used for listing.
  * Format: roomify_project_<userId>_
  */
-const makePrefix = (userId) => `${PROJECT_PREFIX}${userId}_`;
+const makePrefix = (userId) =>
+  `${PROJECT_PREFIX}${encodeURIComponent(String(userId))}:`;
 
 // ---------------------------------------------------------------------------
 
