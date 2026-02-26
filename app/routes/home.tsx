@@ -9,8 +9,8 @@ import { createProject, listProjects } from "components/lib/puter.action";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
+    { title: "Roomify" },
+    { name: "description", content: "Generate floor plans with Roomify, the AI-powered platform for architects and designers!" },
   ];
 }
 
