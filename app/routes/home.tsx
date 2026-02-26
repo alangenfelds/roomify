@@ -103,10 +103,10 @@ export default function Home() {
           <a href="#upload" className="cta">
             Upload your floor plan <ArrowRight className="icon" />
           </a>
-
+{/* 
           <Button variant="outline" size="lg" className="demo">
             Watch Demo
-          </Button>
+          </Button> */}
         </div>
 
         <div id="upload" className="upload-shell">
